@@ -1,0 +1,7 @@
+target/
+examples/subjects/classes/
+examples/subjects/lib/
+experiments/tools/
+experiments/results/work/
+enssp-tests/
+*.class
