@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use enSSP-J, please cite it as below."
+title: "enSSP-J: enhanced state-sensitivity partitioning test generator for stateful Java classes"
+version: 1.0.0
+date-released: 2026-10-01
+license: MIT
+repository-code: "https://github.com/drammarsultan/enssp-j"
+authors:
+  - family-names: Sultan
+    given-names: Ammar Mohammed
+    affiliation: "Al-Balqa Applied University"
+    email: ammar.sultan@bau.edu.jo
+keywords:
+  - software testing
+  - test generation
+  - state-sensitivity partitioning
+  - genetic algorithm
+  - Java

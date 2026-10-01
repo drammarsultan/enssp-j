@@ -1,0 +1,20 @@
+Subject programs in examples/subjects are third-party code and are NOT covered by
+enSSP-J's MIT licence. They are redistributed under their own licences:
+
+examples/subjects/src/sequences/BinTree.java, Stack.java
+examples/subjects/src/rbt/TreeMap.java
+  From Symbolic PathFinder (jpf-symbc), https://github.com/SymbolicPathFinder/jpf-symbc,
+  directory src/examples. Copyright United States Government as represented by the
+  Administrator of the National Aeronautics and Space Administration. Apache License 2.0.
+  BinTree and TreeMap are the binary-tree and red-black-tree subjects of
+  W. Visser, C. S. Pasareanu, R. Pelanek, "Test input generation for Java containers using
+  state matching", ISSTA 2006. TreeMap is derived from java.util.TreeMap.
+  Modifications for enSSP-J (marked "[enSSP-J]" in the source):
+    - imports of gov.nasa.jpf.* and JPF annotations (@Preconditions, @Symbolic) removed;
+    - TreeMap: JPF tree-construction helpers genTreeS*(), main(), and invariant checkers
+      (consistency, ordered, wellConnected, redConsistency, blackHeight, blackConsistency)
+      and the helper class Range removed. No map operation was changed.
+
+Apache Commons Collections 4.4 (CircularFifoQueue, Flat3Map, LRUMap, TreeList)
+  Not included in this repository; examples/subjects/build-subjects.sh downloads the
+  unmodified release jar from Maven Central. Apache License 2.0.
