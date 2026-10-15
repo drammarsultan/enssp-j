@@ -45,12 +45,12 @@ mvn package            # or, without Maven:
 ./build.sh
 ```
 
-Both produce `target/enssp-j-1.0.0.jar`.
+Both produce `target/enssp-j-1.1.0.jar`.
 
 ## Usage
 
 ```sh
-java -jar target/enssp-j-1.0.0.jar --class com.example.MyQueue --cp path/to/classes --out src/test/java
+java -jar target/enssp-j-1.1.0.jar --class com.example.MyQueue --cp path/to/classes --out src/test/java
 ```
 
 | Option | Default | Meaning |
@@ -94,12 +94,29 @@ A JSON report is always printed to standard output, for example:
 Search stops when every known target is covered or the budget is spent. Output printed by the
 class under test is suppressed so that the report stays machine-readable.
 
+## Object arguments (1.1.0, opt-in)
+
+By default enSSP-J passes only the built-in argument values listed under Limitations, exactly as
+in 1.0.0. With `--object-args` it also builds:
+
+* arrays of any buildable component type (lengths 0, 1, 2);
+* `Collection`, `List`, `Iterable`, `Set` arguments, with the element type taken from the
+  generic signature (sizes 0, 1, 2);
+* objects of public concrete classes through their public constructors, nested up to two
+  levels; candidates whose constructor throws are dropped;
+
+and allows access programs with up to five parameters instead of three. Each call builds fresh
+argument objects, and the generated tests construct them inline (`new X(...)`). Choices come from
+a generator seeded by `--seed`. Interfaces and abstract classes other than the collection types
+are not instantiated. Without the option, 1.1.0 produces the same tests as 1.0.0 for the same
+seed and budget.
+
 ## Example
 
 ```sh
 ./build.sh
 examples/subjects/build-subjects.sh          # builds the example subjects
-java -jar target/enssp-j-1.0.0.jar --class rbt.TreeMap --cp examples/subjects/classes --out /tmp/t
+java -jar target/enssp-j-1.1.0.jar --class rbt.TreeMap --cp examples/subjects/classes --out /tmp/t
 ```
 
 ## Tests
@@ -120,7 +137,8 @@ See [`experiments/README.md`](experiments/README.md).
 
 * Only public, concrete classes with at least one public constructor whose parameters are
   primitives, boxed types, `String`, `Object`/`Comparable`/`Number`, or enums. Methods with other
-  parameter types (collections, functional interfaces, user types) are skipped.
+  parameter types (collections, functional interfaces, user types) are skipped, unless
+  `--object-args` is given (see above); interfaces such as functional interfaces stay unsupported.
 * Oracles are regression oracles captured from the version under test. They detect behavioural
   changes, not violations of a specification. A class whose state cannot be observed through
   public methods yields weak oracles.

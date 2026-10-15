@@ -50,9 +50,17 @@ public final class Event {
 
     /** Invokes the event; checked and unchecked exceptions thrown by the module are rethrown unwrapped. */
     public Object invoke(Object target) throws Throwable {
+        Object[] a = args;
+        for (Object o : args) {
+            if (o instanceof Recipe) {  // object arguments (--object-args): fresh objects for every call
+                a = new Object[args.length];
+                for (int i = 0; i < args.length; i++) a[i] = Recipe.value(args[i]);
+                break;
+            }
+        }
         try {
-            if (exec instanceof Constructor) return ((Constructor<?>) exec).newInstance(args);
-            return ((Method) exec).invoke(target, args);
+            if (exec instanceof Constructor) return ((Constructor<?>) exec).newInstance(a);
+            return ((Method) exec).invoke(target, a);
         } catch (InvocationTargetException ite) {
             throw ite.getCause();
         }

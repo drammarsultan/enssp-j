@@ -35,6 +35,11 @@ public final class EventAlphabet {
     }
 
     public static EventAlphabet build(Class<?> cut, ArgumentPool pool, int maxArgCombos, Random rng) {
+        return build(cut, pool, maxArgCombos, 3, rng);
+    }
+
+    /** @param maxParams access programs with more parameters are skipped (3 in 1.0.0) */
+    public static EventAlphabet build(Class<?> cut, ArgumentPool pool, int maxArgCombos, int maxParams, Random rng) {
         if (cut.isInterface() || Modifier.isAbstract(cut.getModifiers())) {
             throw new IllegalArgumentException(cut.getName() + " is abstract; enSSP-J needs a concrete class");
         }
@@ -55,7 +60,7 @@ public final class EventAlphabet {
         for (Method m : cut.getMethods()) {
             if (Modifier.isStatic(m.getModifiers()) || m.isBridge() || m.isSynthetic()) continue;
             if (m.getDeclaringClass() == Object.class || EXCLUDED.contains(m.getName())) continue;
-            if (!supported(m, pool) || m.getParameterCount() > 3) continue;
+            if (!supported(m, pool) || m.getParameterCount() > maxParams) continue;
             methods.add(m);
         }
         methods.sort(Comparator.comparing(Method::toGenericString));
@@ -71,17 +76,26 @@ public final class EventAlphabet {
     }
 
     private static boolean supported(Executable e, ArgumentPool pool) {
-        for (Class<?> p : e.getParameterTypes()) if (!pool.supports(p)) return false;
+        Class<?>[] p = e.getParameterTypes();
+        java.lang.reflect.Type[] g = genericTypes(e);
+        for (int i = 0; i < p.length; i++) if (!pool.supports(p[i], g[i])) return false;
         return true;
+    }
+
+    /** Generic parameter types aligned with getParameterTypes() (falls back to the erased types). */
+    private static java.lang.reflect.Type[] genericTypes(Executable e) {
+        java.lang.reflect.Type[] g = e.getGenericParameterTypes();
+        return g.length == e.getParameterCount() ? g : e.getParameterTypes();
     }
 
     /** All argument combinations, or a seeded random sample of {@code max} of them. */
     private static List<Event> instantiate(Executable e, ArgumentPool pool, int max, Random rng) {
         Class<?>[] p = e.getParameterTypes();
+        java.lang.reflect.Type[] g = genericTypes(e);
         List<List<Object>> domains = new ArrayList<>();
         long total = 1;
-        for (Class<?> t : p) {
-            List<Object> d = pool.valuesFor(t);
+        for (int k = 0; k < p.length; k++) {
+            List<Object> d = pool.valuesFor(p[k], g[k]);
             domains.add(d);
             total *= d.size();
         }

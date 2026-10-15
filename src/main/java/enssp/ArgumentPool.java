@@ -13,6 +13,7 @@ public final class ArgumentPool {
 
     private final int[] ints;
     private final String[] strings;
+    private ObjectBuilder objects;  // null unless --object-args (enSSP-J 1.1.0); then object parameters are supported
 
     public ArgumentPool(int[] ints, String[] strings) {
         this.ints = ints.clone();
@@ -21,6 +22,24 @@ public final class ArgumentPool {
 
     public static ArgumentPool defaults() {
         return new ArgumentPool(new int[] {-1, 0, 1, 2, 3, 5}, new String[] {"", "a", "b"});
+    }
+
+    /** Enables the object-argument builder for this pool. */
+    public void enableObjects(ObjectBuilder b) { this.objects = b; }
+
+    /**
+     * Parameter check used by {@link EventAlphabet}. Without the builder this is exactly
+     * {@link #supports(Class)} on the erased type, as in enSSP-J 1.0.0.
+     */
+    public boolean supports(Class<?> erased, java.lang.reflect.Type generic) {
+        if (supports(erased)) return true;
+        return objects != null && erased != void.class && objects.supports(generic);
+    }
+
+    /** Values for a parameter; built-in types keep their 1.0.0 values. */
+    public List<Object> valuesFor(Class<?> erased, java.lang.reflect.Type generic) {
+        if (supports(erased) || objects == null) return valuesFor(erased);
+        return objects.values(generic, 0);
     }
 
     public boolean supports(Class<?> t) {
@@ -62,6 +81,11 @@ public final class ArgumentPool {
 
     /** Java source literal for {@code value} passed to a parameter declared as {@code declared}. */
     public static String literal(Object value, Class<?> declared) {
+        if (value instanceof Recipe) {
+            // Cast to the erased parameter type: selects the overload and lets a collection literal
+            // (ArrayList<Object>) be passed where Collection<T> is declared.
+            return "(" + declared.getCanonicalName() + ") " + ((Recipe) value).javaExpr();
+        }
         String raw = rawLiteral(value);
         if (declared.isPrimitive() || value == null) return raw;
         if (declared == String.class && value instanceof String) return raw;

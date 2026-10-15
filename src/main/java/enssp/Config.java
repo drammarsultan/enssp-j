@@ -7,12 +7,14 @@ public final class Config {
     public String outDir = "enssp-tests";
     public String mode = "enssp";           // enssp | random | ssp
     public boolean reduce = true;
+    public boolean objectArgs = false;      // 1.1.0: build object-typed arguments (ObjectBuilder); off = 1.0.0 behaviour
     public long budgetSeconds = 30;
     public long seed = 1;
     public int bound = 3;                   // numeric abstraction buckets <0,0,..,bound-1,>=bound
     public int maxStates = 150;             // states probed for sensitivity
     public int maxDepth = 5;                // BFS depth of the exploration phase
-    public int maxArgCombos = 12;           // argument tuples per access program
+    public int maxArgCombos = 12;
+    public int maxParams = 3;               // access programs with more parameters are skipped; 5 with --object-args           // argument tuples per access program
     public int maxLength = 20;              // events per sequence
     public long timeoutMillis = 1000;       // per sequence execution
     public int populationSize = 50;

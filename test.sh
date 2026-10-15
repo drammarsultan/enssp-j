@@ -8,4 +8,4 @@ cd "$(dirname "$0")"
 ./build.sh
 rm -rf target/test-classes && mkdir -p target/test-classes
 javac -nowarn --release 11 -cp "target/classes:$JUNIT_CP" -d target/test-classes $(find src/test/java -name "*.java")
-java -cp "target/classes:target/test-classes:$JUNIT_CP" org.junit.runner.JUnitCore enssp.CoreTest enssp.EndToEndTest
+java -cp "target/classes:target/test-classes:$JUNIT_CP" org.junit.runner.JUnitCore enssp.CoreTest enssp.EndToEndTest enssp.ObjectArgsTest

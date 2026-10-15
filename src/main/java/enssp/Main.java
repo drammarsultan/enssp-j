@@ -17,7 +17,7 @@ import java.util.Random;
 public final class Main {
 
     private static final String USAGE = String.join("\n",
-        "enSSP-J 1.0.0 - enhanced state-sensitivity partitioning test generator",
+        "enSSP-J 1.1.0 - enhanced state-sensitivity partitioning test generator",
         "",
         "Usage: java -jar enssp-j.jar --class <fully.qualified.Name> [options]",
         "",
@@ -25,6 +25,9 @@ public final class Main {
         "  --out <dir>            output directory for the JUnit test class (default enssp-tests)",
         "  --mode <m>             enssp (GA + reduction, default) | random | ssp",
         "  --no-reduce            skip test-suite reduction (enssp mode)",
+        "  --object-args          also build object-typed arguments (arrays, collections, objects via",
+        "                         public constructors) and allow up to 5 parameters per access program",
+        "                         instead of 3; off by default, which is the 1.0.0 behaviour",
         "  --budget <s>           search budget in seconds (default 30)",
         "  --seed <n>             random seed (default 1)",
         "  --bound <n>            numeric abstraction bound (default 3)",
@@ -72,6 +75,7 @@ public final class Main {
             String k = a[i];
             if (k.equals("--help") || k.equals("-h")) { System.out.println(USAGE); System.exit(0); }
             if (k.equals("--no-reduce")) { c.reduce = false; continue; }
+            if (k.equals("--object-args")) { c.objectArgs = true; c.maxParams = 5; continue; }
             if (i + 1 >= a.length) throw new IllegalArgumentException("Missing value for " + k);
             String v = a[++i];
             switch (k) {
@@ -108,7 +112,13 @@ public final class Main {
         Class<?> cut = Class.forName(cfg.className, true, loader);
         Random rng = new Random(cfg.seed);
 
-        EventAlphabet alphabet = EventAlphabet.build(cut, ArgumentPool.defaults(), cfg.maxArgCombos, rng);
+        ArgumentPool pool = ArgumentPool.defaults();
+        ObjectBuilder objects = null;
+        if (cfg.objectArgs) {
+            objects = new ObjectBuilder(pool, cfg.seed);
+            pool.enableObjects(objects);
+        }
+        EventAlphabet alphabet = EventAlphabet.build(cut, pool, cfg.maxArgCombos, cfg.maxParams, rng);
         StateAbstraction abstraction = new StateAbstraction(cut, alphabet.observers, cfg.bound);
         Map<String, Object> r = new LinkedHashMap<>();
         try (SequenceExecutor exec = new SequenceExecutor(abstraction, cfg.bound, cfg.timeoutMillis)) {
@@ -157,7 +167,8 @@ public final class Main {
                 + " sensitivity targets over " + model.partitions() + " partitions.";
             Path file = new JUnitWriter(cut, exec, abstraction.observers()).write(suite, Paths.get(cfg.outDir), cfg.testSuffix, header);
 
-            r.put("tool", "enSSP-J 1.0.0");
+            r.put("tool", "enSSP-J 1.1.0");
+            r.put("objectArgs", cfg.objectArgs);
             r.put("class", cut.getName());
             r.put("mode", cfg.mode + (cfg.mode.equals("enssp") && !cfg.reduce ? "-noreduce" : ""));
             r.put("seed", cfg.seed);
